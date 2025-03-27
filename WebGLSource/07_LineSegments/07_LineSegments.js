@@ -8,13 +8,8 @@ button up을 하면 최종 선분을 저장하고 임시 선분을 삭제함.
 첫 번째 선분은 선분이 아니라 "원을 그리는 시작점"으로 사용되며,
 드래그하는 동안 원의 반지름이 실시간으로 커졌다 작아졌다 하며 보여진다.
 ---------------------------------------------------------------------------*/
-import {
-    resizeAspectRatio,
-    setupText,
-    updateText,
-    Axes,
-} from "../util/util.js";
-import { Shader, readShaderFile } from "../util/shader.js";
+import {Axes, resizeAspectRatio, setupText, updateText,} from "../util/util.js";
+import {readShaderFile, Shader} from "../util/shader.js";
 
 let isInitialized = false;
 const canvas = document.getElementById("glCanvas");
@@ -118,21 +113,16 @@ function setupMouseEvents() {
             lines.push([...startPoint, ...tempEndPoint]);
 
             if (lines.length == 1) {
+                const [x1, y1, x2, y2] = lines[0];
+                const radius = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
                 updateText(
                     textOverlay,
-                    "First circle: center (" +
-                    lines[0][0].toFixed(2) +
+                    "Circle: center (" +
+                    x1.toFixed(2) +
                     ", " +
-                    lines[0][1].toFixed(2) +
-                    ") ~ radius to (" +
-                    lines[0][2].toFixed(2) +
-                    ", " +
-                    lines[0][3].toFixed(2) +
-                    ")"
-                );
-                updateText(
-                    textOverlay2,
-                    "Click and drag to draw the second line segment"
+                    y1.toFixed(2) +
+                    ") radius = " +
+                    radius.toFixed(2)
                 );
             } else {
                 updateText(
