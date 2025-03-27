@@ -9,8 +9,8 @@ button up을 하면 최종 선분을 저장하고 임시 선분을 삭제함.
 
 이 과정을 반복하여 여러 개의 선분 (line segment)을 그릴 수 있음.
 ---------------------------------------------------------------------------*/
-import { resizeAspectRatio, setupText, updateText, Axes } from '../util/util.js';
-import { Shader, readShaderFile } from '../util/shader.js';
+import {Axes, resizeAspectRatio, setupText, updateText} from '../util/util.js';
+import {Shader} from '../util/shader.js';
 
 // Global variables
 let isInitialized = false; // global variable로 event listener가 등록되었는지 확인
@@ -174,9 +174,8 @@ function setupMouseEvents() {
                     center: startPoint,
                     radius: radius
                 };
-                updateText(textOverlay, `Circle: center (${startPoint[0].toFixed(2)}, ${startPoint[1].toFixed(2)}), radius ${radius.toFixed(2)}`);
-            }
-            else if (lines.length === 0) {
+                updateText(textOverlay, `Circle: center (${startPoint[0].toFixed(2)}, ${startPoint[1].toFixed(2)}), radius = ${radius.toFixed(2)}`);
+            } else if (lines.length === 0) {
                 const newLine = [...startPoint, ...tempEndPoint];
                 lines.push(newLine);
 
@@ -194,8 +193,22 @@ function setupMouseEvents() {
                 if (intersections.length === 0) {
                     updateText(textOverlay3, "No intersection");
                 } else {
-                    const pointsStr = intersections.map(p => `(${p[0].toFixed(2)}, ${p[1].toFixed(2)})`).join(", ");
-                    updateText(textOverlay3, `Intersection point(s): ${pointsStr}`);
+                    if (intersections.length === 1) {
+                        const [p1] = intersections;
+                        updateText(
+                            textOverlay3,
+                            `Intersection Points: 1 Point 1: (${p1[0].toFixed(2)}, ${p1[1].toFixed(2)})`
+                        );
+                    } else if (intersections.length === 2) {
+                        const [p1, p2] = intersections;
+                        updateText(
+                            textOverlay3,
+                            `Intersection Points: 2 Point 1: (${p1[0].toFixed(2)}, ${p1[1].toFixed(2)}) Point 2: (${p2[0].toFixed(2)}, ${p2[1].toFixed(2)})`
+                        );
+                    } else {
+                        updateText(textOverlay3, "No intersection");
+                    }
+
                 }
             }
 
