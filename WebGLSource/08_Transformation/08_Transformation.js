@@ -168,39 +168,52 @@ function animate(currentTime) {
     const deltaTime = (currentTime - lastTime) / 1000;
     lastTime = currentTime;
 
+    // --------------------------
+    // ☀️ SUN 자전 (45도/초)
+    // --------------------------
     sunAngle += Math.PI * 0.25 * deltaTime;
+
     const sunR = mat4.create();
     const sunS = mat4.create();
     mat4.rotate(sunR, sunR, sunAngle, [0, 0, 1]);
-    mat4.scale(sunS, sunS, [0.4, 0.4, 1]);
+    mat4.scale(sunS, sunS, [0.4, 0.4, 1]); // edge = 0.5 * 0.4 = 0.2
+
     sunTransform = mat4.create();
     mat4.multiply(sunTransform, sunR, sunS);
 
-    earthAngle += Math.PI / 6 * deltaTime;
-    earthSelfAngle += Math.PI * deltaTime;
+    // --------------------------
+    // 🌍 EARTH 공전 + 자전
+    // --------------------------
+    earthAngle += Math.PI / 6 * deltaTime;      // 30도/초
+    earthSelfAngle += Math.PI * deltaTime;      // 180도/초
 
-    const eS = mat4.create();
-    const eR_self = mat4.create();
-    const eT = mat4.create();
-    const eR_orbit = mat4.create();
+    const eS = mat4.create();             // 크기: edge = 0.5 * 0.2 = 0.1
+    const eR_self = mat4.create();        // 자전
+    const eT = mat4.create();             // 공전 거리 0.7
+    const eR_orbit = mat4.create();       // 공전 회전
 
     mat4.scale(eS, eS, [0.2, 0.2, 1]);
     mat4.rotate(eR_self, eR_self, earthSelfAngle, [0, 0, 1]);
     mat4.translate(eT, eT, [0.7, 0, 0]);
     mat4.rotate(eR_orbit, eR_orbit, earthAngle, [0, 0, 1]);
 
-    earthTransform = mat4.create();
-    mat4.multiply(earthTransform, eR_orbit, eT);
+    const earthOrbitTransform = mat4.create(); // 공전만
+    mat4.multiply(earthOrbitTransform, eR_orbit, eT);
+
+    earthTransform = mat4.clone(earthOrbitTransform); // 자전 포함
     mat4.multiply(earthTransform, earthTransform, eR_self);
     mat4.multiply(earthTransform, earthTransform, eS);
 
-    moonAngle += Math.PI / 3 * deltaTime;
-    moonSelfAngle += 2 * Math.PI * deltaTime;
+    // --------------------------
+    // 🌕 MOON 공전 (Earth 기준) + 자전
+    // --------------------------
+    moonAngle += 2 * Math.PI * deltaTime;         // 60도/초
+    moonSelfAngle += Math.PI * deltaTime;     // 360도/초
 
-    const mS = mat4.create();
-    const mR_self = mat4.create();
-    const mT = mat4.create();
-    const mR_orbit = mat4.create();
+    const mS = mat4.create();             // 크기: edge = 0.5 * 0.1 = 0.05
+    const mR_self = mat4.create();        // 자전
+    const mT = mat4.create();             // 공전 거리 0.2
+    const mR_orbit = mat4.create();       // 공전 회전
 
     mat4.scale(mS, mS, [0.1, 0.1, 1]);
     mat4.rotate(mR_self, mR_self, moonSelfAngle, [0, 0, 1]);
@@ -208,11 +221,14 @@ function animate(currentTime) {
     mat4.rotate(mR_orbit, mR_orbit, moonAngle, [0, 0, 1]);
 
     moonTransform = mat4.create();
-    mat4.multiply(moonTransform, earthTransform, mR_orbit);
+    mat4.multiply(moonTransform, earthOrbitTransform, mR_orbit); // 자전 빠진 Earth 기준
     mat4.multiply(moonTransform, moonTransform, mT);
     mat4.multiply(moonTransform, moonTransform, mR_self);
     mat4.multiply(moonTransform, moonTransform, mS);
 
+    // --------------------------
+    // 기타 키보드 테스트용
+    // --------------------------
     if (isAnimating && currentTransformType) {
         rotationAngle += Math.PI * 0.25 * deltaTime;
         applyTransform(currentTransformType);
