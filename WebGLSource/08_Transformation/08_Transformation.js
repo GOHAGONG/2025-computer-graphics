@@ -94,8 +94,8 @@ function setupAxesBuffers(shader) {
     gl.bindVertexArray(axesVAO);
 
     const axesVertices = new Float32Array([
-        -0.8, 0.0, 0.8, 0.0,  // x축
-        0.0, -0.8, 0.0, 0.8   // y축
+        -1.0, 0.0, 1.0, 0.0,  // x축
+        0.0, -1.0, 0.0, 1.0   // y축
     ]);
 
     const axesColors = new Float32Array([
@@ -256,8 +256,6 @@ async function main() {
         earthVAO = createCubeVAO([0.0, 1.0, 1.0, 1.0]);
         moonVAO = createCubeVAO([1.0, 1.0, 0.0, 1.0]);
 
-        textOverlay = setupText(canvas, 'NO TRANSFORMATION', 1);
-        setupText(canvas, 'press 1~7 to apply different order of transformations', 2);
         setupKeyboardEvents();
         shader.use();
         return true;
