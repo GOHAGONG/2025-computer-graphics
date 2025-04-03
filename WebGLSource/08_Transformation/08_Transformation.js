@@ -21,6 +21,10 @@ import { Shader, readShaderFile } from '../util/shader.js';
 let sunAngle = 0;
 let sunTransform = mat4.create();
 
+let earthAngle = 0;      // 공전용
+let earthSelfAngle = 0;  // 자전용
+let earthTransform = mat4.create();
+
 let isInitialized = false;
 const canvas = document.getElementById('glCanvas');
 const gl = canvas.getContext('webgl2');
@@ -205,16 +209,15 @@ function render() {
     gl.bindVertexArray(axesVAO);
     gl.drawArrays(gl.LINES, 0, 4);
 
-    // SUN 그리기 (항상 자전)
+    // SUN 그리기
     shader.setMat4("u_transform", sunTransform);
     gl.bindVertexArray(cubeVAO);
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
-    /*
-    shader.setMat4("u_transform", finalTransform);
+    // EARTH 그리기
+    shader.setMat4("u_transform", earthTransform);
     gl.bindVertexArray(cubeVAO);
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-    */
 }
 
 function animate(currentTime) {
@@ -222,25 +225,43 @@ function animate(currentTime) {
     const deltaTime = (currentTime - lastTime) / 1000;
     lastTime = currentTime;
 
-    // SUN 회전
+    // --------------------------
+    // 🌞 SUN 자전 (45도/초)
+    // --------------------------
     sunAngle += Math.PI * 0.25 * deltaTime;  // 45도/초
 
     sunTransform = mat4.create();
-    const R = mat4.create();
-    const S = mat4.create();
-    mat4.rotate(R, R, sunAngle, [0, 0, 1]);
-    mat4.scale(S, S, [0.2, 0.2, 1]);
-    mat4.multiply(sunTransform, R, S);
+    const sunR = mat4.create();
+    const sunS = mat4.create();
+    mat4.rotate(sunR, sunR, sunAngle, [0, 0, 1]);
+    mat4.scale(sunS, sunS, [0.4, 0.4, 1]); // edge 0.5 × 0.4 = 0.2
+    mat4.multiply(sunTransform, sunR, sunS);
 
-    // 키보드 기반 회전 (Earth용)
-    if (isAnimating && currentTransformType) {
-        rotationAngle += Math.PI * 0.25 * deltaTime;  // 45도/초
-        applyTransform(currentTransformType);
-    }
+    // --------------------------
+    // 🌍 EARTH 자전 + 공전
+    // --------------------------
+    earthAngle += Math.PI / 6 * deltaTime;      // 공전 속도 30도/초
+    earthSelfAngle += Math.PI * deltaTime;      // 자전 속도 180도/초
+
+    const eS = mat4.create();             // 크기 변환 (edge = 0.1)
+    const eR_self = mat4.create();        // 자전
+    const eT = mat4.create();             // 공전 거리 (0.7)
+    const eR_orbit = mat4.create();       // 공전 회전
+
+    mat4.scale(eS, eS, [0.2, 0.2, 1]);    // 기본 edge 0.5 × 0.2 = 0.1
+    mat4.rotate(eR_self, eR_self, earthSelfAngle, [0, 0, 1]);
+    mat4.translate(eT, eT, [0.7, 0.0, 0]);
+    mat4.rotate(eR_orbit, eR_orbit, earthAngle, [0, 0, 1]);
+
+    earthTransform = mat4.create();
+    mat4.multiply(earthTransform, eR_orbit, eT);
+    mat4.multiply(earthTransform, earthTransform, eR_self);
+    mat4.multiply(earthTransform, earthTransform, eS);
 
     render();
     requestAnimationFrame(animate);
 }
+
 
 
 async function initShader() {
