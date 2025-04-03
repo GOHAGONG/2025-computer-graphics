@@ -18,6 +18,9 @@ canvas의 중심에 한 edge의 길이가 0.3인 정사각형을 그리고,
 import { resizeAspectRatio, setupText, updateText, Axes } from '../util/util.js';
 import { Shader, readShaderFile } from '../util/shader.js';
 
+let sunAngle = 0;
+let sunTransform = mat4.create();
+
 let isInitialized = false;
 const canvas = document.getElementById('glCanvas');
 const gl = canvas.getContext('webgl2');
@@ -202,10 +205,16 @@ function render() {
     gl.bindVertexArray(axesVAO);
     gl.drawArrays(gl.LINES, 0, 4);
 
-    // 정사각형 그리기
+    // SUN 그리기 (항상 자전)
+    shader.setMat4("u_transform", sunTransform);
+    gl.bindVertexArray(cubeVAO);
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+    /*
     shader.setMat4("u_transform", finalTransform);
     gl.bindVertexArray(cubeVAO);
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+    */
 }
 
 function animate(currentTime) {
@@ -213,13 +222,26 @@ function animate(currentTime) {
     const deltaTime = (currentTime - lastTime) / 1000;
     lastTime = currentTime;
 
+    // SUN 회전
+    sunAngle += Math.PI * 0.25 * deltaTime;  // 45도/초
+
+    sunTransform = mat4.create();
+    const R = mat4.create();
+    const S = mat4.create();
+    mat4.rotate(R, R, sunAngle, [0, 0, 1]);
+    mat4.scale(S, S, [0.2, 0.2, 1]);
+    mat4.multiply(sunTransform, R, S);
+
+    // 키보드 기반 회전 (Earth용)
     if (isAnimating && currentTransformType) {
-        rotationAngle += Math.PI * 0.5* deltaTime;
+        rotationAngle += Math.PI * 0.25 * deltaTime;  // 45도/초
         applyTransform(currentTransformType);
     }
+
     render();
     requestAnimationFrame(animate);
 }
+
 
 async function initShader() {
     const vertexShaderSource = await readShaderFile('shVert.glsl');
