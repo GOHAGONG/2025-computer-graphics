@@ -1,11 +1,5 @@
 /*-------------------------------------------------------------------------
 10_CameraCircle.js
-
-- Viewing a square pyramid at origin with perspective projection
-- The pyramid is fixed in place and does not rotate
-- A camera is rotating around the origin through the circle of radius 3
-- The height (y position) of the camera changes sinusoidally from 0 to 10
-- The camera is always looking at the origin.
 ---------------------------------------------------------------------------*/
 
 import { resizeAspectRatio, setupText, updateText, Axes } from '../util/util.js';
